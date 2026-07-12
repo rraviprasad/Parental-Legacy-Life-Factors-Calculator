@@ -1,0 +1,131 @@
+import React from 'react';
+import { Download, FileText, Save, CheckCircle2 } from 'lucide-react';
+import { jsPDF } from 'jspdf';
+import html2canvas from 'html2canvas';
+
+export function ResultsDisplay({ data, onSave }) {
+  if (!data) return null;
+
+  const handleExportPDF = async () => {
+    const element = document.getElementById('results-container');
+    if (!element) return;
+    
+    try {
+      const canvas = await html2canvas(element, { scale: 2 });
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'px',
+        format: [canvas.width, canvas.height]
+      });
+      pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
+      pdf.save('Legacy_Factors_Report.pdf');
+    } catch (error) {
+      console.error('Failed to export PDF', error);
+    }
+  };
+
+  const handleExportCSV = () => {
+    const headers = ['Factor', 'Mother Value', 'Father Value', 'Total'];
+    const rows = data.factors.map(f => [
+      f.name,
+      f.mother.toFixed(3),
+      f.father.toFixed(3),
+      f.total.toFixed(3)
+    ]);
+    
+    rows.push(['TOTAL', data.motherTotal.toFixed(3), data.fatherTotal.toFixed(3), data.grandTotal.toFixed(3)]);
+    
+    const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+    
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', 'Legacy_Factors_Report.csv');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  return (
+    <div className="space-y-6">
+      <div id="results-container" className="bg-white dark:bg-slate-800 rounded-2xl p-6 md:p-8 shadow-xl border border-slate-100 dark:border-slate-700">
+        
+        <div className="flex flex-col md:flex-row justify-between items-center mb-8 pb-6 border-b border-slate-200 dark:border-slate-700">
+          <div>
+            <h2 className="text-2xl font-bold text-slate-800 dark:text-white">Life Factors Analysis</h2>
+            <p className="text-slate-500 dark:text-slate-400 mt-1">Calculated results based on birth date</p>
+          </div>
+          
+          <div className="mt-4 md:mt-0 px-4 py-2 bg-indigo-50 dark:bg-indigo-900/30 rounded-lg flex items-center space-x-2">
+            <CheckCircle2 className="text-indigo-600 dark:text-indigo-400" size={20} />
+            <div>
+              <span className="text-sm text-slate-600 dark:text-slate-300">Higher Legacy: </span>
+              <span className="font-bold text-indigo-700 dark:text-indigo-300">{data.higherParent}</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="bg-slate-50 dark:bg-slate-900/50">
+                <th className="py-4 px-4 font-semibold text-slate-700 dark:text-slate-300 rounded-tl-lg">Life Factors</th>
+                <th className="py-4 px-4 font-semibold text-pink-600 dark:text-pink-400">Mother</th>
+                <th className="py-4 px-4 font-semibold text-blue-600 dark:text-blue-400">Father</th>
+                <th className="py-4 px-4 font-semibold text-slate-700 dark:text-slate-300 rounded-tr-lg">Total</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100 dark:divide-slate-700/50">
+              {data.factors.map((factor, idx) => (
+                <tr key={idx} className="hover:bg-slate-50/50 dark:hover:bg-slate-700/20 transition-colors">
+                  <td className="py-3 px-4 text-slate-800 dark:text-slate-200 font-medium">{factor.name}</td>
+                  <td className="py-3 px-4 text-slate-600 dark:text-slate-400">{factor.mother.toFixed(3)}</td>
+                  <td className="py-3 px-4 text-slate-600 dark:text-slate-400">{factor.father.toFixed(3)}</td>
+                  <td className="py-3 px-4 text-slate-800 dark:text-slate-200 font-semibold bg-slate-50 dark:bg-slate-900/30">
+                    {factor.total.toFixed(3)}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+            <tfoot>
+              <tr className="bg-slate-100 dark:bg-slate-700/50 border-t-2 border-slate-200 dark:border-slate-600">
+                <td className="py-4 px-4 font-bold text-slate-800 dark:text-white rounded-bl-lg">TOTAL</td>
+                <td className="py-4 px-4 font-bold text-pink-600 dark:text-pink-400">{data.motherTotal.toFixed(3)}</td>
+                <td className="py-4 px-4 font-bold text-blue-600 dark:text-blue-400">{data.fatherTotal.toFixed(3)}</td>
+                <td className="py-4 px-4 font-bold text-indigo-700 dark:text-indigo-400 rounded-br-lg">{data.grandTotal.toFixed(3)}</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+
+      <div className="flex flex-wrap gap-4 justify-center md:justify-end">
+        <button 
+          onClick={handleExportCSV}
+          className="flex items-center space-x-2 px-4 py-2 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-600 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shadow-sm"
+        >
+          <FileText size={18} />
+          <span>Export CSV</span>
+        </button>
+        <button 
+          onClick={handleExportPDF}
+          className="flex items-center space-x-2 px-4 py-2 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-600 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shadow-sm"
+        >
+          <Download size={18} />
+          <span>Export PDF</span>
+        </button>
+        {onSave && (
+          <button 
+            onClick={() => onSave(data)}
+            className="flex items-center space-x-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors shadow-md hover:shadow-lg"
+          >
+            <Save size={18} />
+            <span>Save to History</span>
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
