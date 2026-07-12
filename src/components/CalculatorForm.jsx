@@ -5,6 +5,25 @@ export function CalculatorForm({ onCalculate }) {
   const [dob, setDob] = useState('');
   const [error, setError] = useState('');
 
+  const handleDateChange = (e) => {
+    const value = e.target.value;
+    setDob(value);
+    setError('');
+
+    if (!value) return;
+
+    const selectedDate = new Date(value);
+    const today = new Date();
+
+    if (selectedDate > today) {
+      setError('Date of Birth cannot be in the future.');
+      return;
+    }
+
+    // Auto-calculate on valid date selection
+    onCalculate(value);
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     setError('');
@@ -43,7 +62,7 @@ export function CalculatorForm({ onCalculate }) {
             type="date"
             id="dob"
             value={dob}
-            onChange={(e) => setDob(e.target.value)}
+            onChange={handleDateChange}
             className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all"
             max={new Date().toISOString().split('T')[0]}
             required
