@@ -137,10 +137,20 @@ function App() {
             )}
             <button
               onClick={toggleTheme}
-              className="p-2 text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-700 rounded-full transition-colors"
+              className="relative w-16 h-8 rounded-full bg-slate-200 dark:bg-indigo-900 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-slate-800"
               title="Toggle Dark Mode"
             >
-              {darkMode ? <Sun size={20} /> : <Moon size={20} />}
+              <span
+                className={`absolute top-1 w-6 h-6 rounded-full bg-white dark:bg-indigo-500 shadow-md flex items-center justify-center transition-all duration-300 ${
+                  darkMode ? 'left-9' : 'left-1'
+                }`}
+              >
+                {darkMode ? (
+                  <Moon size={14} className="text-white" />
+                ) : (
+                  <Sun size={14} className="text-amber-500" />
+                )}
+              </span>
             </button>
           </div>
         </div>
